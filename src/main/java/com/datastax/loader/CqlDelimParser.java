@@ -175,7 +175,7 @@ public class CqlDelimParser {
         pmap.put(DataType.Name.UUID, uuidParser);
         pmap.put(DataType.Name.VARCHAR, stringParser);
         pmap.put(DataType.Name.VARINT, bigIntegerParser);
-        pmap.put(DataType.Name.JSON, jsonParser);
+        pmap.put(DataType.Name.JSONB, jsonParser);
 
     }
 

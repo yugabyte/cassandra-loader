@@ -317,7 +317,13 @@ class CqlDelimLoadTask implements Callable<Long> {
                 if (format.equalsIgnoreCase("delim"))
                     elements = cdp.parse(line);
                 else if (format.equalsIgnoreCase("jsonline"))
-                    elements = cdp.parseJson(line);
+                    try {
+                        elements = cdp.parseJson(line);
+                    } catch (Throwable e) {
+                        // parseJson can throw an exception for certain records
+                        elements = null;
+                        System.err.println("Exception: " + e.getMessage());
+                    }
                 if (null != elements) {
                     int ret = sendInsert(elements, line);
                     if (-2 == ret) {
