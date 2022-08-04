@@ -564,7 +564,8 @@ public class CqlDelimUnload {
             String select = cdp.generateSelect();
             String partitionKey = getPartitionKey(cdp, session);
             if (null != beginToken) {
-                select = select + " WHERE Token(" + partitionKey + ") > " 
+                String comparison = String.valueOf(Long.MIN_VALUE).equals(beginToken) ? ") >= " : ") > ";
+                select = select + " WHERE Token(" + partitionKey + comparison
                     + beginToken + " AND Token(" + partitionKey + ") <= " 
                     + endToken;
                 if (null != where)
