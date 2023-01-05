@@ -542,6 +542,7 @@ public class CqlDelimLoad {
                 //.withCompression(ProtocolOptions.Compression.LZ4)
                 .withPoolingOptions(pOpts)
                 //.withLoadBalancingPolicy(new TokenAwarePolicy( DCAwareRoundRobinPolicy.builder().build()))
+                .withRetryPolicy(new LoaderRetryPolicy(numRetries))
                 ;
 
             if (null != username)
@@ -666,6 +667,11 @@ public class CqlDelimLoad {
                                                          nullsUnset, format,
                                                          keyspace, table, ttl);
             Future<Long> res = executor.submit(worker);
+            if (res.get() <= 0) {
+                System.err.println(String.format("Failing due a future failure res=%d", res.get()));
+                cleanup();
+                return false;
+            }
             total = res.get();
             executor.shutdown();
         }
@@ -730,11 +736,13 @@ public class CqlDelimLoad {
 
             for (Future<Long> res : results){
                 if (res.get() <= 0) {
+                    System.err.println(String.format("Failing due a future failure res=%d", res.get()));
                     cleanup();
                     return false;
                 }
                 total += res.get();
             }
+            System.err.println(String.format("Future results ok"));
         }
 
         // Cleanup

@@ -65,6 +65,10 @@ public class ActionFutureList extends AbstractFutureManager {
         return purgeFutures();
     }
 
+    public long getNumInsertErrors() {
+        return insertErrors;
+    }
+
     public long getNumInserted() {
         return numInserted;
     }

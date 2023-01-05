@@ -7,5 +7,7 @@ public interface FutureManager {
 
     public boolean cleanup();
 
+    public long getNumInsertErrors();
+
     public long getNumInserted();
 }

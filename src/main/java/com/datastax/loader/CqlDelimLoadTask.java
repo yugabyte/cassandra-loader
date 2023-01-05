@@ -203,6 +203,7 @@ class CqlDelimLoadTask implements Callable<Long> {
 
         insert = cdp.generateInsert();
         statement = session.prepare(insert);
+        statement.setIdempotent(true);
         statement.setRetryPolicy(new LoaderRetryPolicy(numRetries));
         statement.setConsistencyLevel(consistencyLevel);
         batch = new BatchStatement(BatchStatement.Type.UNLOGGED);
@@ -411,7 +412,11 @@ class CqlDelimLoadTask implements Callable<Long> {
             numInserted += batch.size();
         }
 
-        if (!fm.cleanup()) {
+        if ((fm.getNumInsertErrors() >= maxInsertErrors) || !fm.cleanup()) {
+            if (null != logPrinter) {
+                logPrinter.println("*** FAILED: " + readerName + "  number of lines processed: " + lineNumber + " (" + numInserted + " inserted) insertErrorCount=" + fm.getNumInsertErrors());
+            }
+            System.err.println("*** FAILED: " + readerName + "  number of lines processed: " + lineNumber + " (" + numInserted + " inserted) insertErrorCount=" + fm.getNumInsertErrors());
             cleanup(false);
             return -1;
         }
