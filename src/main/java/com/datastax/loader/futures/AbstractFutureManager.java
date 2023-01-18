@@ -19,5 +19,7 @@ public abstract class AbstractFutureManager implements FutureManager {
 
     public abstract boolean cleanup();
 
+    public abstract long getNumInsertErrors();
+
     public abstract long getNumInserted();
 }

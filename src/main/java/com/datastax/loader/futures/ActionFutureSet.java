@@ -29,14 +29,18 @@ public class ActionFutureSet extends AbstractFutureManager {
     }
 
     public boolean add(ResultSetFuture future, final String line) {
-        if (maxInsertErrors <= insertErrors.get())
+        if (maxInsertErrors <= insertErrors.get()) {
+            System.err.println(String.format("ActionFutureSet: maxInsertErrors=%d exceeded insertErrors=%d", maxInsertErrors, insertErrors.get()));
             return false;
+        }
         try {
             available.acquire();
         }
         catch (InterruptedException e) {
+            System.err.println(String.format("ActionFutureSet: InterruptedExceptiond"));
             return false;
         }
+
         Futures.addCallback(future, new FutureCallback<ResultSet>() {
                 @Override
                 public void onSuccess(ResultSet rs) {
@@ -46,12 +50,18 @@ public class ActionFutureSet extends AbstractFutureManager {
                 }
                 @Override
                 public void onFailure(Throwable t) {
-                    available.release();
                     long numErrors = insertErrors.incrementAndGet();
+                    java.io.StringWriter sw = new java.io.StringWriter();
+                    java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+                    t.printStackTrace(pw);
+                    System.err.println(String.format("ActionFutureSet: onFailure numErrors=%d stacktrace=%s", numErrors, sw.toString()));
+                    System.err.println(String.format("ActionFutureSet: onFailure line=%s", line));
                     futureAction.onFailure(t, line);
                     if (maxInsertErrors <= numErrors) {
+                        System.err.println(String.format("ActionFutureSet: onFailure calling onTooManyFailures"));
                         futureAction.onTooManyFailures();
                     }
+                    available.release();
                 }
             });
         return true;
@@ -63,7 +73,17 @@ public class ActionFutureSet extends AbstractFutureManager {
         } catch (InterruptedException e) {
             return false;
         }
-        return true;
+
+        // check for too many errors
+        if (maxInsertErrors <= insertErrors.get()) {
+            System.err.println(String.format("ActionFutureSet: cleanup - too many errors: insertErrors=%d maxInsertErrors=%d", insertErrors.get(), maxInsertErrors));
+            return false;
+        }
+       return true;
+    }
+
+    public long getNumInsertErrors() {
+        return insertErrors.get();
     }
 
     public long getNumInserted() {

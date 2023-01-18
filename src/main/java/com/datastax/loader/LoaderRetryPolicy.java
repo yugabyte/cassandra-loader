@@ -23,6 +23,7 @@ class LoaderRetryPolicy implements RetryPolicy {
                                        int requiredResponses, 
                                        int receivedResponses, 
                                        boolean dataRetrieved, int nbRetry) {
+        System.out.println(String.format("onReadTimeout: nbRetry=%d numRetries=%d statement=%s", nbRetry, numRetries, statement.toString()));
         if (nbRetry != 0)
             return RetryDecision.rethrow();
 
@@ -35,6 +36,7 @@ class LoaderRetryPolicy implements RetryPolicy {
     public RetryDecision onUnavailable(Statement statement, ConsistencyLevel cl,
                                        int requiredReplica, int aliveReplica, 
                                        int nbRetry) {
+        System.out.println(String.format("onUnavailable: nbRetry=%d numRetries=%d statement=%s", nbRetry, numRetries, statement.toString()));
         return RetryDecision.rethrow();
     }
 
@@ -42,6 +44,8 @@ class LoaderRetryPolicy implements RetryPolicy {
                                         ConsistencyLevel cl, 
                                         WriteType writeType, int requiredAcks, 
                                         int receivedAcks, int nbRetry) {
+        System.out.println(String.format("onWriteTimeout: nbRetry=%d numRetries=%d statement=%s", nbRetry, numRetries, statement.toString()));
+
         if (nbRetry >= numRetries)
             return RetryDecision.rethrow();
 
@@ -52,6 +56,7 @@ class LoaderRetryPolicy implements RetryPolicy {
                                                     ConsistencyLevel cl,
                                                     DriverException e,
                                                     int nbRetry) {
+        System.out.println(String.format("onRequestError: nbRetry=%d exception=%s", nbRetry, e.toString()));
         return RetryDecision.tryNextHost(cl);
     }
 
